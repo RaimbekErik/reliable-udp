@@ -34,7 +34,9 @@ INPUT = os.path.join(ROOT, "experiments", "input.bin")
 BASE = dict(proto="sw", W=16, k=7, payload=1024, fin_retries=10)       # endpoint parameters
 BASE_EMU = dict(rate_bps=1_000_000, delay_ms=20, jitter_ms=0, queue_pkts=128,
                 data_loss=0, ack_loss=0, corrupt=0, dup=0, reorder=0)
-SEEDS = [1, 2, 3]          # repetitions for the experiments with random impairments
+SEEDS = [1, 2, 3]          # repetitions for exp 4 (random impairments)
+LOSS_SEEDS = list(range(1, 11))   # exp 2: 10 repetitions, a 256-packet transfer
+                                  # sees only ~13 losses at 5 %, so one run is noisy
 
 
 def run_def(exp, name, seed=1, actions=(), idle_ms=30000, **params):
@@ -65,7 +67,7 @@ def plan():
     # Experiment 2: data packet loss 0 / 5 / 10 %, three seeds each
     for proto in ("sw", "gbn", "sr"):
         for loss in (0, 5, 10):
-            seeds = SEEDS if loss else [1]           # loss 0 is deterministic
+            seeds = LOSS_SEEDS if loss else [1]      # loss 0 is deterministic
             for s in seeds:
                 runs.append(run_def(2, f"{proto}_loss{loss}_s{s}", seed=s,
                                     proto=proto, data_loss=loss / 100))

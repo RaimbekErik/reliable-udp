@@ -4,13 +4,13 @@ Sender and receiver implementing **Stop-and-Wait**, **Go-Back-N** and **Selectiv
 over UDP, with a self-implemented CRC-32 and an adaptive RTO (RFC 6298).
 C, POSIX, standard C library only. Tested on Ubuntu 24.04 / gcc 13.
 
-> Status: endpoints (sender, receiver, packet format, CRC-32, RTO) are done.
-> The impairment emulator and the analysis scripts are developed separately.
+Three C programs (sender, impairment emulator, receiver) plus Python scripts that
+run all experiments and compute every metric from the logs.
 
 ## Build
 
 ```bash
-make            # builds sender, receiver, test_crc
+make            # builds sender, receiver, emulator, test_crc
 make test       # unit tests + end-to-end tests (needs python3)
 ```
 
@@ -25,9 +25,13 @@ address sent it the packet, i.e. the emulator. Start the receiver first.
 
 ```bash
 ./receiver -p gbn -w 16 -k 7 -l 6000 -o received.bin -L receiver.log
+./emulator -l 5000 -r 6000 -s experiments/scenarios/baseline.txt -L emulator.log &
 ./sender   -p gbn -w 16 -k 7 -s 1024 -f input.bin -P 5000 -L sender.log
+kill %1                      # the emulator runs until stopped (or --idle MS)
 sha256sum input.bin received.bin
 ```
+Any emulator parameter can also be changed on the command line, e.g.
+`./emulator -l 5000 -r 6000 --set data_loss=0.1 --set delay_ms=100 --seed 7`.
 
 ### Sender options
 | Option | Meaning | Default |
@@ -58,6 +62,108 @@ sha256sum input.bin received.bin
 | `--idle MS` | give up after this long without packets (0 = never) | 30000 |
 
 Exit codes: sender `0` ok, `2` FINACK never received. Receiver `0` ok, `3` idle timeout (file incomplete).
+
+### Emulator options
+| Option | Meaning | Default |
+|---|---|---|
+| `-l, --listen PORT` | port the sender sends to | required |
+| `-r, --recv-port PORT` | receiver's port | required |
+| `-H, --recv-host IP` | receiver's address | 127.0.0.1 |
+| `-s, --scenario FILE` | scenario file (below) | none = baseline |
+| `-S, --set KEY=VALUE` | set one parameter, overrides the file; repeatable | |
+| `--seed N` | PRNG seed (same as `--set seed=N`) | 1 |
+| `-L, --log PATH` | event log | emulator.log |
+| `--idle MS` | exit after MS without packets | 0 = run until SIGINT/SIGTERM |
+
+## Impairment emulator
+
+```
+sender ──▶ [listen port] ─ fwd link: queue → L/R → delay±jitter ─▶ receiver
+sender ◀── [listen port] ◀─ rev link: queue → L/R → delay±jitter ─ [own port] ◀── receiver
+```
+Two sockets: one bound to `--listen` (faces the sender), one on a free port
+(faces the receiver; the receiver replies to it, which is how the direction is
+known). Every arriving datagram goes through, in this order:
+
+1. **Scenario actions** for that specific packet (drop / delay / corrupt / dup).
+2. **Loss**: `data_loss` drops DATA packets (fwd), `ack_loss` drops ACKs (rev).
+   Lost packets never reach the link.
+3. **Corruption**: with probability `corrupt`, one uniformly chosen bit of the
+   datagram (header or payload) is flipped.
+4. **Duplication**: with probability `dup`, an exact copy is queued right behind
+   the original (it also uses the link).
+5. **Reordering**: with probability `reorder`, the packet is held back; when the
+   next packet of that direction arrives, that one is queued first and the held one
+   right after it. If nothing follows within `max_hold_ms` the held packet is
+   released anyway (only matters at the very end of a transfer). While a packet is
+   held, the next packet is not itself held.
+6. **Link**: FIFO queue of `queue_pkts` packets (including the one being sent,
+   tail drop when full). Packets leave one at a time, each taking `L·8/R` s,
+   L = datagram bytes (12-byte header + payload), R = `rate_bps`.
+7. **Propagation**: delivered `delay_ms` + U(−`jitter_ms`, +`jitter_ms`) after its
+   transmission ends. Order is kept: a packet is never delivered before the previous
+   packet of its direction (except packets delayed by a scenario `delay` action,
+   which are meant to arrive late).
+
+**Reproducibility.** Every random decision is a pure function of
+(seed, direction, arrival index n of the packet in that direction, kind of
+decision), computed with the splitmix64 hash. The n-th packet of a direction
+therefore gets the same fate for a given seed, independent of the other direction,
+of which impairments are enabled and of OS scheduling.
+
+### Scenario file
+One `key value` per line, `#` starts a comment. A key without prefix sets both
+directions; `fwd.` / `rev.` sets one direction (fwd = sender→receiver).
+
+| Key | Meaning | Baseline |
+|---|---|---|
+| `rate_bps` | link rate, bit/s (0 = infinite) | 1000000 |
+| `delay_ms` | propagation delay | 20 |
+| `jitter_ms` | uniform jitter j, offset in [−j, +j] | 0 |
+| `queue_pkts` | queue capacity, packets | 128 |
+| `data_loss` | DATA loss probability (fwd only) | 0 |
+| `ack_loss` | ACK loss probability (rev only) | 0 |
+| `corrupt`, `dup`, `reorder` | probabilities, both directions | 0 |
+| `max_hold_ms` | longest time a reordered packet is held | 1000 |
+| `seed` | PRNG seed | 1 |
+
+Per-packet actions: `<drop|delay|corrupt|dup> <data|ack|fin|finack> <match> [ms M]`,
+where `<match>` is `seq S[-T] [occ N]` (the N-th time a packet with that number
+arrives, default the first) or `index I[-J]` (the I-th packet of that type to arrive,
+0-based, counting retransmissions):
+```
+drop data seq 12              # first transmission of DATA 12
+drop data seq 12 occ 2        # ...and its first retransmission
+delay ack seq 30 ms 200       # ACK 30 arrives 200 ms late
+drop ack index 0-6            # the first seven ACKs
+```
+
+### Emulator log
+```
+time_us,event,dir,pid,type,seq,bytes,qlen,tx_start_us,tx_end_us,deliver_us,info
+```
+`pid` = emulator-wide packet id (a duplicate gets its own pid, `info=orig=<pid>`).
+Events: `RX` (arrival, `info=idx=n`), `DROP_LOSS`, `DROP_ACKLOSS`, `DROP_ACTION`,
+`DROP_QUEUE`, `DELAY_ACTION`, `CORRUPT` (`info=bit=b`), `DUP`, `HOLD`,
+`RELEASE` (`info=next|timeout`), `ENQ` (queue length and the computed transmission
+start/end and delivery time), `DELIVER` (`info=late_us=` scheduling error, typically
+~0.15 ms). The `#` lines record every parameter of the run.
+
+## Experiments and analysis
+
+```bash
+make
+python3 experiments/run_experiments.py          # all 5 experiments (~20 min)
+python3 experiments/run_experiments.py 2 --only sr   # a subset
+python3 experiments/analyze.py                  # metrics, tables, plots
+```
+`run_experiments.py` contains the whole run plan (parameters, seeds). For each run it
+writes `results/exp<N>/<run>/` with `scenario.txt`, the three logs, `stdout.txt` and
+`run.json` (all parameters, the exact command lines, exit codes and both SHA-256
+hashes). The test file `experiments/input.bin` is 256 KiB of pseudo-random bytes
+(generated with seed 337 if missing). `analyze.py` writes `results/summary/exp<N>.csv`
+(every metric of every run), `results/summary/tables.md` and `results/plots/*.png`.
+Metric definitions are at the top of `analyze.py`.
 
 ## Packet format
 
@@ -163,5 +269,8 @@ everything at once, k = 3 wrap-around, and the window limits
 | `packet.c` | pack / unpack / verify |
 | `util.c` | timestamps, logging, RTO estimator |
 | `sender.c`, `receiver.c` | the endpoints |
+| `emulator.c` | impairment emulator |
 | `test_crc.c` | CRC and packet unit tests |
 | `tests/` | relay and end-to-end test script |
+| `experiments/` | run plan + runner, analysis, scenario examples, test file |
+| `results/` | logs, scenario files and hashes of every run; summary tables and plots |

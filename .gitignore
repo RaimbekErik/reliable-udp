@@ -1,7 +1,11 @@
 *.o
 sender
 receiver
+emulator
 test_crc
 tests/out/
 *.log
 __pycache__/
+# run logs are a deliverable: keep them, but not the received copies
+!results/**/*.log
+results/**/received.bin
