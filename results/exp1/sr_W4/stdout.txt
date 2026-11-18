@@ -1,0 +1,3 @@
+emulator: listening on 40021, forwarding to 127.0.0.1:40020
+sender: sr W=4 k=7  262144 bytes in 256 packets, completion 3.166 s, goodput 662.3 kbit/s
+receiver: sr  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp1/sr_W4/received.bin

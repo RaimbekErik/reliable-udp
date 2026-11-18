@@ -1,0 +1,11 @@
+# experiment 3, run sr_W16_d50
+seed 1
+rate_bps 1000000
+delay_ms 50
+jitter_ms 5.0
+queue_pkts 128
+data_loss 0
+ack_loss 0
+corrupt 0
+dup 0
+reorder 0

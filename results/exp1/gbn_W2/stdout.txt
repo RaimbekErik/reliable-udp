@@ -1,0 +1,3 @@
+emulator: listening on 40007, forwarding to 127.0.0.1:40006
+sender: gbn W=2 k=7  262144 bytes in 256 packets, completion 6.287 s, goodput 333.6 kbit/s
+receiver: gbn  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp1/gbn_W2/received.bin

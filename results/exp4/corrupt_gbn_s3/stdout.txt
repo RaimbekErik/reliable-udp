@@ -1,0 +1,3 @@
+emulator: listening on 40105, forwarding to 127.0.0.1:40104
+sender: gbn W=16 k=7  262144 bytes in 256 packets, completion 6.013 s, goodput 348.8 kbit/s
+receiver: gbn  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp4/corrupt_gbn_s3/received.bin

@@ -1,0 +1,11 @@
+# experiment 3, run sr_W64_d200
+seed 1
+rate_bps 1000000
+delay_ms 200
+jitter_ms 20.0
+queue_pkts 128
+data_loss 0
+ack_loss 0
+corrupt 0
+dup 0
+reorder 0

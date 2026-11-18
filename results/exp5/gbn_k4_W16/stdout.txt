@@ -1,0 +1,4 @@
+emulator: listening on 40049, forwarding to 127.0.0.1:40048
+warning: GBN W=16 > 2^k-1=15, transfer may be corrupted
+sender: gbn W=16 k=4  262144 bytes in 256 packets, completion 3.164 s, goodput 662.9 kbit/s
+receiver: gbn  272 packets, 278528 bytes written to /home/claude/reliable-udp/results/exp5/gbn_k4_W16/received.bin

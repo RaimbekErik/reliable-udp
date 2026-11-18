@@ -1,0 +1,3 @@
+emulator: listening on 40069, forwarding to 127.0.0.1:40068
+sender: sr W=5 k=4  262144 bytes in 256 packets, completion 3.541 s, goodput 592.3 kbit/s
+receiver: sr  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp5/sr_k4_W5/received.bin

@@ -1,0 +1,36 @@
+{
+ "exp": 4,
+ "name": "dup_gbn_s3",
+ "seed": 3,
+ "endpoint": {
+  "proto": "gbn",
+  "W": 16,
+  "k": 7,
+  "payload": 1024,
+  "fin_retries": 10
+ },
+ "emulator": {
+  "rate_bps": 1000000,
+  "delay_ms": 20,
+  "jitter_ms": 0,
+  "queue_pkts": 128,
+  "data_loss": 0,
+  "ack_loss": 0,
+  "corrupt": 0,
+  "dup": 0.05,
+  "reorder": 0
+ },
+ "actions": [],
+ "idle_ms": 30000,
+ "rc_sender": 0,
+ "rc_receiver": 0,
+ "sha256_original": "2d819c2c3c23bfc435515201d595c4bda42a58751899a268fd63a2a86afa39c7",
+ "sha256_received": "2d819c2c3c23bfc435515201d595c4bda42a58751899a268fd63a2a86afa39c7",
+ "intact": true,
+ "wall_s": 2.84,
+ "commands": {
+  "receiver": "./receiver -p gbn -w 16 -k 7 -l 40140 -o /home/claude/reliable-udp/results/exp4/dup_gbn_s3/received.bin -L /home/claude/reliable-udp/results/exp4/dup_gbn_s3/receiver.log --linger 500 --idle 30000",
+  "emulator": "./emulator -l 40141 -r 40140 -s /home/claude/reliable-udp/results/exp4/dup_gbn_s3/scenario.txt -L /home/claude/reliable-udp/results/exp4/dup_gbn_s3/emulator.log",
+  "sender": "./sender -p gbn -w 16 -k 7 -s 1024 -f /home/claude/reliable-udp/experiments/input.bin --fin-retries 10 -P 40141 -L /home/claude/reliable-udp/results/exp4/dup_gbn_s3/sender.log"
+ }
+}

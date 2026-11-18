@@ -1,0 +1,4 @@
+emulator: listening on 40077, forwarding to 127.0.0.1:40076
+warning: SR W=9 > 2^(k-1)=8, transfer may be corrupted
+sender: sr W=9 k=4  262144 bytes in 256 packets, completion 3.164 s, goodput 662.9 kbit/s
+receiver: sr  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp5/sr_k4_W9/received.bin

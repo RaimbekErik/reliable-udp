@@ -1,0 +1,3 @@
+emulator: listening on 40109, forwarding to 127.0.0.1:40108
+sender: sr W=16 k=7  262144 bytes in 256 packets, completion 4.387 s, goodput 478.1 kbit/s
+receiver: sr  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp4/corrupt_sr_s2/received.bin

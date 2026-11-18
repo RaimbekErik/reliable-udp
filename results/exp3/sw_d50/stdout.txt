@@ -1,0 +1,3 @@
+emulator: listening on 40077, forwarding to 127.0.0.1:40076
+sender: sw W=1 k=7  262144 bytes in 256 packets, completion 28.001 s, goodput 74.9 kbit/s
+receiver: sw  256 packets, 262144 bytes written to /home/claude/reliable-udp/results/exp3/sw_d50/received.bin
