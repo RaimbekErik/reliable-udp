@@ -1,4 +1,4 @@
-# BLG 337E Project 1 – Reliable Data Transfer over UDP
+# Reliable Data Transfer over UDP
 
 Sender and receiver implementing **Stop-and-Wait**, **Go-Back-N** and **Selective Repeat**
 over UDP, with a self-implemented CRC-32 and an adaptive RTO (RFC 6298).
