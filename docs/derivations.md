@@ -127,7 +127,7 @@ the expected number of transmissions per delivered packet is (Stallings)
 **Why the costs differ.** SW pays a full RTO of idle link per loss but resends
 1 packet; SR resends 1 packet and idles only for RTO + RTT − W·T_f; GBN resends
 the whole window (≈ W times the bytes of SR) *and* idles for an RTO per loss.
-So in bytes GBN ≫ SR = SW, and in time SW ≫ GBN > SR.
+So in bytes GBN far exceeds SR = SW, and in time SW >> GBN > SR.
 
 ## 3. Experiment 3 – propagation delay
 

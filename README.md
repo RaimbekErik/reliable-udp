@@ -272,5 +272,7 @@ everything at once, k = 3 wrap-around, and the window limits
 | `emulator.c` | impairment emulator |
 | `test_crc.c` | CRC and packet unit tests |
 | `tests/` | relay and end-to-end test script |
+| `docs/protocol_spec.pdf` (+ `.md`) | protocol specification with state-machine diagrams (`docs/diagrams/`) |
+| `docs/report.pdf` (+ `.md`) | technical report; appendix = `docs/derivations.md`. Rebuild with `docs/build_docs.sh` (pandoc + xelatex + graphviz) |
 | `experiments/` | run plan + runner, analysis, scenario examples, test file |
 | `results/` | logs, scenario files and hashes of every run; summary tables and plots |

@@ -1,0 +1,18 @@
+digraph G {
+  graph [fontname="DejaVu Sans", fontsize=11, rankdir=TB, nodesep=0.9, ranksep=0.65, pad=0.25];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled",
+         fillcolor="#EEF3FA", color="#4C72B0", penwidth=1.3, margin="0.18,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=10, color="#555555", arrowsize=0.7];
+  start [shape=circle, label="", width=0.16, style=filled, fillcolor=black];
+
+  RECV [label="RECEIVING\nwindow [E, E+W)"];
+  LING [label="LINGER\n(as Go-Back-N, transitions 5-6)"];
+  OK   [label="DONE\nexit 0", shape=doublecircle, fillcolor="#E3F1E6", color="#55A868"];
+  FAIL [label="INCOMPLETE\nexit 3", shape=doublecircle, fillcolor="#F8E1E1", color="#C44E52"];
+  start -> RECV [label=" 0  E = 0, buffer empty"];
+  RECV:e -> RECV:e [label=" 1  DATA in window:\n buffer, ACK it,\n deliver in order"];
+  RECV:w -> RECV:w [label="2  DATA in [E-W, E): re-ACK it\n3  other DATA / bad CRC /\nearly FIN: ignore "];
+  RECV -> LING [label=" 4  FIN with seq E"];
+  LING -> OK   [label=" 6  linger time over"];
+  RECV -> FAIL [label=" 7  idle timeout"];
+}

@@ -1,0 +1,20 @@
+digraph G {
+  graph [fontname="DejaVu Sans", fontsize=11, rankdir=TB, nodesep=0.9, ranksep=0.65, pad=0.25];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled",
+         fillcolor="#EEF3FA", color="#4C72B0", penwidth=1.3, margin="0.18,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=10, color="#555555", arrowsize=0.7];
+  start [shape=circle, label="", width=0.16, style=filled, fillcolor=black];
+
+  SEND [label="SENDING\nwindow has room and data left"];
+  WAIT [label="WAITING\nwindow full or all data sent"];
+  FIN  [label="CLOSING\n(as Go-Back-N, transitions 7-9)"];
+  OK   [label="DONE\nexit 0", shape=doublecircle, fillcolor="#E3F1E6", color="#55A868"];
+  start -> SEND [label=" 0  init"];
+  SEND:e -> SEND:e [label=" 1  send new packet,\n start its own timer"];
+  SEND -> WAIT [label=" 2  window full / no data left"];
+  WAIT -> SEND [label=" 3  ACK of an unACKed packet"];
+  WAIT:e -> WAIT:e [label=" 4  timer of packet i:\n resend packet i only", color="#C44E52", fontcolor="#C44E52"];
+  WAIT:w -> WAIT:w [label="5  old / repeated ACK,\nbad CRC "];
+  WAIT -> FIN  [label=" 6  all N packets ACKed"];
+  FIN  -> OK   [label=" 8  FINACK"];
+}
