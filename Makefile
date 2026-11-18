@@ -2,9 +2,12 @@ CC      = gcc
 CFLAGS  = -std=gnu11 -Wall -Wextra -O2
 COMMON  = crc32.o packet.o util.o
 
-all: sender receiver test_crc
+all: sender receiver emulator test_crc
 
 sender: sender.o $(COMMON)
+	$(CC) $(CFLAGS) -o $@ $^
+
+emulator: emulator.o $(COMMON)
 	$(CC) $(CFLAGS) -o $@ $^
 
 receiver: receiver.o $(COMMON)
@@ -21,7 +24,7 @@ test: all
 	bash tests/run_tests.sh
 
 clean:
-	rm -f *.o sender receiver test_crc
+	rm -f *.o sender receiver emulator test_crc
 	rm -rf tests/out
 
 .PHONY: all test clean
