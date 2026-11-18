@@ -1,0 +1,7 @@
+*.o
+sender
+receiver
+test_crc
+tests/out/
+*.log
+__pycache__/
